@@ -63,7 +63,7 @@ pipeline{
             steps{
                 sh "git tag ${NEW_TAG}"
                 sh "git clean -f"
-                sh "git push --tags"
+                sh "git push origin --tags"
             }
         }
         stage('E2E test'){
