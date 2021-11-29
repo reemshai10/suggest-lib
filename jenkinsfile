@@ -46,7 +46,8 @@ Pipeline{
             steps{
                 configFileProvider([configFile(fileId: 'mvn-setting', variable: 'MAVEN_SETTINGS_XML')]) {
                     sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML test'
-            }
+                }
+        }
         }
         stage('publish'){
             when {
