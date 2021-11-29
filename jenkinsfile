@@ -61,9 +61,9 @@ pipeline{
         stage('tag-release'){
             when { expression {env.GIT_BRANCH ==~ /release(.+)/ } }
             steps{
-                sh "git tag ${NEW_TAG}"
                 sh "git clean -f"
-                sh "git push origin --tags"
+                sh "git tag ${NEW_TAG}"
+                sh "git push --tags"
             }
         }
         stage('E2E test'){
