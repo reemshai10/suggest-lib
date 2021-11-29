@@ -28,7 +28,7 @@ pipeline{
                         NEW_TAG=VERSION+REG
                     } else {
                         NEW_TAG=HIGHEST.split('\\.')
-                        NEW_TAG[1]=NEW_TAG[1].toInteger()+1
+                        NEW_TAG[2]=NEW_TAG[2].toInteger()+1
                         NEW_TAG=NEW_TAG.join('.')
                     }
                     sh "mvn versions:set -DnewVersion=${NEW_TAG}"
