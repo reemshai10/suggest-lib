@@ -22,7 +22,7 @@ pipeline{
                     
                     TAG=env.GIT_BRANCH.split('\\/')
                     VERSION= TAG[1]
-                    HIGHEST = sh(script: "git tag -l --sort=version:refname "${VERSION}.*" | tail -1", returnStdout: true).trim()
+                    HIGHEST = sh(script: "git tag -l --sort=version:refname \"${VERSION}.*\" | tail -1", returnStdout: true).trim()
                     if (HIGHEST.isEmpty()) {
                         REG =".0"
                         NEW_TAG=VERSION+REG
