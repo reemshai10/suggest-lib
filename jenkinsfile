@@ -18,7 +18,7 @@ pipeline{
     }
     stages{
         stage('calculate-release'){
-            when { expression { params.VERSION != 'NONE'} }
+            when { expression { env.GIT_BRANCH == 'release/*' && params.VERSION != 'NONE'} }
             steps {
                 script {
                     sh "git fetch --tags || true"
@@ -47,14 +47,10 @@ pipeline{
                 configFileProvider([configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS_XML')]) {
                     sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML test'
                 }
-        }
+            }
         }
         stage('publish'){
-            when {
-                expression {
-                    (env.GIT_BRANCH == 'origin/master' || params.VERSION != 'NONE')
-                }
-            }
+            when { expression {env.GIT_BRANCH == 'master' || env.GIT_BRANCH == 'release/*'} }
             steps{
                 configFileProvider([configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS_XML')]) {
                     sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML clean deploy'
@@ -62,19 +58,8 @@ pipeline{
             }
         }
         stage('tag-release'){
-            when { expression {params.VERSION != 'NONE'} }
+            when { expression {env.GIT_BRANCH == 'release/*'} }
             steps{
-                // issues with permissions when using weak password for artifactory
-                // configFileProvider([configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS_XML')]) {
-                //     sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML clean deploy'
-                // }
-                // rtMavenRun (
-                //     tool: 'maven-3.6.2',
-                //     pom: 'pom.xml',
-                //     goals: 'clean install',
-                //     resolverId: 'resolver-1',
-                //     deployerId: 'deployer-1'
-                // )
                 sh "git tag ${NEW_TAG}"
                 sh "git clean -f"
                 sh "git push --tags"
