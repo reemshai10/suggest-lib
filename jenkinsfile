@@ -97,9 +97,6 @@ Pipeline{
             }
         success {
             mail bcc: '', body: 'Success to deploy', cc: '', from: '', replyTo: '', subject: 'jenkins job', to: 'reemtest12@gmail.com'
-        }   
-        
-        
+        }     
     }
-    
 }
