@@ -20,12 +20,12 @@ pipeline{
                 script {
                     sh "git fetch --tags || true"
                     
-                    TAG= env.GIT_BRANCH.split('\\/')
+                    TAG=env.GIT_BRANCH.split('\\/')
                     VERSION= TAG[1]
                     HIGHEST = sh(script: "git tag -l --sort=version:refname \"${VERSION}\" | tail -1", returnStdout: true).trim()
                     if (HIGHEST.isEmpty()) {
                         REG =".0"
-                        NEW_TAG=$VERSION$REG
+                        NEW_TAG=$VERSION+$REG
                     } else {
                         NEW_TAG=HIGHEST.split('\\.')
                         NEW_TAG[1]=NEW_TAG[1].toInteger()+1
