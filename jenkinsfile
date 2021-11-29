@@ -4,9 +4,6 @@ pipeline{
         maven 'maven-3.6.2'
         jdk 'jdk8'
     }
-    parameters {
-        string (name: 'VERSION', defaultValue: 'NONE')
-    }
     options{
         timestamps()
         timeout(unit: 'MINUTES', time: 10)
@@ -22,12 +19,13 @@ pipeline{
             steps {
                 script {
                     sh "git fetch --tags || true"
-                    HIGHEST = sh(script: "git tag -l --sort=version:refname \"${params.VERSION}\" | tail -1", returnStdout: true).trim()
+                    
+                    TAG=HIGHEST.split('\\/')
+                    VERSION= TAG[1]
+                    HIGHEST = sh(script: "git tag -l --sort=version:refname \"${VERSION}\" | tail -1", returnStdout: true).trim()
                     if (HIGHEST.isEmpty()) {
                         REG =".0"
-                        TAG=HIGHEST.split('\\/')
-                        SPLIT_BRANCH_NAME= TAG[1]
-                        NEW_TAG=$SPLIT_BRANCH_NAME$REG
+                        NEW_TAG=$VERSION$REG
                     } else {
                         NEW_TAG=HIGHEST.split('\\.')
                         NEW_TAG[1]=NEW_TAG[1].toInteger()+1
