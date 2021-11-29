@@ -1,0 +1,105 @@
+Pipeline{
+    agent any
+    tools {
+        maven 'maven-3.6.2'
+        jdk 'jdk8'
+    }
+    parameters {
+        string (name: 'VERSION', defaultValue: 'NONE')
+    }
+    options{
+        timestamps()
+        timeout(unit: 'MINUTES', time: 10)
+        buildDiscarder(logRotator(
+            numToKeepStr: '4',
+            daysToKeepStr: '7',
+            artifactNumToKeepStr: '30')
+        )
+    }
+    stages{
+        stage('calculate-release'){
+            when { expression { params.VERSION != 'NONE'} }
+            steps {
+                script {
+                    sh "git fetch --tags || true"
+                    HIGHEST = sh(script: "git tag -l --sort=version:refname \"${params.VERSION}\" | tail -1", returnStdout: true).trim()
+                    if (HIGHEST.isEmpty()) {
+                        NEW_TAG=params.VERSION
+                    } else {
+                        NEW_TAG=HIGHEST.split('\\.')
+                        NEW_TAG[1]=NEW_TAG[1].toInteger()+1
+                        NEW_TAG=NEW_TAG.join('.')
+                    }
+                    sh "mvn versions:set -DnewVersion=${NEW_TAG}"
+                    sh "mvn versions:commit"
+                }
+            }
+        }
+        stage('compile'){
+            steps{
+                configFileProvider([configFile(fileId: 'mvn-setting', variable: 'MAVEN_SETTINGS_XML')]) {
+                    sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML -Dmaven.test.skip=true clean compile'
+                }
+            }
+        }
+        stage('UnitTest'){
+            steps{
+                configFileProvider([configFile(fileId: 'mvn-setting', variable: 'MAVEN_SETTINGS_XML')]) {
+                    sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML test'
+            }
+        }
+        stage('publish'){
+            when {
+                expression {
+                    (env.GIT_BRANCH == 'origin/master' || params.VERSION != 'NONE')
+                }
+            }
+            steps{
+                configFileProvider([configFile(fileId: 'mvn-setting', variable: 'MAVEN_SETTINGS_XML')]) {
+                    sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML clean deploy'
+                }
+            }
+        }
+        stage('tag-release'){
+            when { expression {params.VERSION != 'NONE'} }
+            steps{
+                // issues with permissions when using weak password for artifactory
+                // configFileProvider([configFile(fileId: 'mvn-setting', variable: 'MAVEN_SETTINGS_XML')]) {
+                //     sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML clean deploy'
+                // }
+                // rtMavenRun (
+                //     tool: 'maven-3.6.2',
+                //     pom: 'pom.xml',
+                //     goals: 'clean install',
+                //     resolverId: 'resolver-1',
+                //     deployerId: 'deployer-1'
+                // )
+                sh "git tag ${NEW_TAG}"
+                sh "git clean -f"
+                sh "git push --tags"
+            }
+        }
+        stage('E2E test'){
+            steps{
+                configFileProvider([configFile(fileId: 'mvn-setting', variable: 'MAVEN_SETTINGS_XML')]) {
+                    sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML clean install'
+                }
+            }
+        }
+    }
+    post{
+        always {
+            echo 'Post stage'
+            deleteDir()
+        }
+        failure {
+                mail bcc: '', body: 'Failure to deploy', cc: '', from: '', replyTo: '', subject: 'jenkins job', to: 'reemtest12@gmail.com'
+            }
+        success {
+            mail bcc: '', body: 'Success to deploy', cc: '', from: '', replyTo: '', subject: 'jenkins job', to: 'reemtest12@gmail.com'
+        }   
+        
+        
+    }
+    
+}
