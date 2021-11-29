@@ -1,0 +1,23 @@
+Build Pseudo code (mvn verify)
+ - compile
+ - test
+
+Master Pseudo code
+ - compile
+ - test
+ - publish as snapshot (mvn depoloy)
+
+Release Pseudo code
+ - calculate correct version based on branch & last tag
+ - update in source (mvn versions:set)
+ - compile
+ - test
+ - publish
+ - tag (git clean, git tag, git push)
+
+ MBP:
+ - (when release/*) calculate correct version based on branch & last tag
+ - compile
+ - test
+ - (when release/* or master) publish
+ - (when release/*) tag
