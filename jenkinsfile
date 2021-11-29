@@ -50,7 +50,7 @@ pipeline{
             }
         }
         stage('publish'){
-            when { expression {env.GIT_BRANCH == 'master' || env.GIT_BRANCH ==~ /release(.+)/ } }
+            when { expression {env.GIT_BRANCH == 'master' || env.GIT_BRANCH ==~ /release(.+)/ } } 
             steps{
                 configFileProvider([configFile(fileId: 'settings', variable: 'MAVEN_SETTINGS_XML')]) {
                     sh 'mvn -U --batch-mode -s $MAVEN_SETTINGS_XML clean deploy'
