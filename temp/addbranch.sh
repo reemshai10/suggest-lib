@@ -1,6 +1,6 @@
 #!/bin/bash
-git config --global user.email "jenkins@jenkins.com"
-git config --global user.name "jenkins"
+git config --global user.email 
+git config --global user.name
 branch="release/$1"
 echo $branch
 if [ `git branch --list $branch` ]

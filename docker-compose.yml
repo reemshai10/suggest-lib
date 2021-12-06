@@ -12,10 +12,12 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /home/ubuntu/toxicTypo/reem_key.pem:/.sshkey/reem_key.pem
     ports:
       - "8080:8080" 
     networks:
-      - jen_arti         
+      - jen_arti 
+      - jenkins_test       
   gitlab:
     image: 'gitlab/gitlab-ee:latest'
     hostname: 'gitlab.example.com'
@@ -37,6 +39,7 @@ services:
 
 networks:
   jen_arti:
+  jenkins_test:
 volumes:
   jenkins_home:
   m2:
